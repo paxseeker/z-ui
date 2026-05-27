@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/epoll.h>
 #include <time.h>
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
@@ -88,22 +87,11 @@ void output_resize(OutputInfo *output) {
     wl_shm_pool_init(g_state, output, 3);
 }
 
-#define TARGET_FRAME_NS 16666667L
-
 void loop_run(void) {
     struct timespec last = {0};
     int frame_count = 0;
-    int epfd = epoll_create1(0);
-    struct epoll_event ev = {
-        .events = EPOLLIN,
-        .data.fd = wl_display_get_fd(g_state->display),
-    };
-    epoll_ctl(epfd, EPOLL_CTL_ADD, ev.data.fd, &ev);
 
     while (g_state->running) {
-        struct timespec frame_start;
-        clock_gettime(CLOCK_MONOTONIC, &frame_start);
-
         for (int i = 0; i < g_state->output_count; i++) {
             OutputInfo *info = g_state->output_infos[i];
             ShmBuffer *buf = get_shm_buffer(info->shm_pool);
@@ -113,6 +101,11 @@ void loop_run(void) {
             wl_surface_damage(info->surface, 0, 0, info->width, info->height);
             wl_surface_attach(info->surface, buf->buffer, 0, 0);
             mark_busy(info->shm_pool, buf->buffer);
+
+            struct wl_callback *cb = wl_surface_frame(info->surface);
+            wl_callback_add_listener(cb, &wl_callback_listener, info);
+            info->frame_callback = cb;
+
             wl_surface_commit(info->surface);
         }
 
@@ -130,19 +123,8 @@ void loop_run(void) {
         }
 
         wl_display_flush(g_state->display);
-        struct epoll_event events[1];
-        if (epoll_wait(epfd, events, 1, 0) > 0) {
-            wl_display_dispatch(g_state->display);
-        }
-
-        clock_gettime(CLOCK_MONOTONIC, &now);
-        long frame_ns = (now.tv_sec - frame_start.tv_sec) * 1000000000L + (now.tv_nsec - frame_start.tv_nsec);
-        if (frame_ns < TARGET_FRAME_NS) {
-            struct timespec rem = {0, TARGET_FRAME_NS - frame_ns};
-            clock_nanosleep(CLOCK_MONOTONIC, 0, &rem, NULL);
-        }
+        wl_display_dispatch(g_state->display);
     }
-    close(epfd);
     wayland_state_free(g_state);
 }
 
