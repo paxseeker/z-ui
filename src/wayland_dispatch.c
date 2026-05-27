@@ -123,6 +123,9 @@ void xdg_surface_configure(void *data, struct xdg_surface *xdg_surface,
                 output->pending_width = 0;
                 output->pending_height = 0;
             }
+            if (!output->shm_pool) {
+                output_resize(output);
+            }
             output->is_configured = 1;
             DEBUG("output %s is configured", output->name);
         }
