@@ -161,8 +161,8 @@ ShmBuffer *get_shm_buffer(ShmPool *pool) {
             return pool->shm_buffers[i];
         }
     }
-    WARN("All buffer busy");
-    return NULL;
+    pool->shm_buffers[0]->busy = 0;
+    return pool->shm_buffers[0];
 }
 
 int mark_busy(ShmPool *pool, struct wl_buffer *buffer) {

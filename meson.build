@@ -3,6 +3,7 @@ project('z-ui', 'c')
 incdir = include_directories('inc')
 
 dep_wayland = dependency('wayland-client')
+dep_m = meson.get_compiler('c').find_library('m')
 wayland_scanner = find_program('wayland-scanner')
 
 protocols = [
@@ -40,5 +41,5 @@ sources = files([
 executable('z-ui',
   sources, proto_sources, proto_headers,
   include_directories: incdir,
-  dependencies: dep_wayland,
+  dependencies: [dep_wayland, dep_m],
 )

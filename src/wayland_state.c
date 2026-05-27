@@ -85,8 +85,10 @@ void output_resize(OutputInfo *output) {
         shm_pool_destroy(output->shm_pool);
         output->shm_pool = NULL;
     }
-    wl_shm_pool_init(g_state, output, 2);
+    wl_shm_pool_init(g_state, output, 3);
 }
+
+#define TARGET_FRAME_NS 16666667L
 
 void loop_run(void) {
     struct timespec last = {0};
@@ -99,6 +101,9 @@ void loop_run(void) {
     epoll_ctl(epfd, EPOLL_CTL_ADD, ev.data.fd, &ev);
 
     while (g_state->running) {
+        struct timespec frame_start;
+        clock_gettime(CLOCK_MONOTONIC, &frame_start);
+
         for (int i = 0; i < g_state->output_count; i++) {
             OutputInfo *info = g_state->output_infos[i];
             ShmBuffer *buf = get_shm_buffer(info->shm_pool);
@@ -107,6 +112,7 @@ void loop_run(void) {
             z_ui_update(pixels, info->width, info->height);
             wl_surface_damage(info->surface, 0, 0, info->width, info->height);
             wl_surface_attach(info->surface, buf->buffer, 0, 0);
+            mark_busy(info->shm_pool, buf->buffer);
             wl_surface_commit(info->surface);
         }
 
@@ -125,8 +131,15 @@ void loop_run(void) {
 
         wl_display_flush(g_state->display);
         struct epoll_event events[1];
-        if (epoll_wait(epfd, events, 1, 1) > 0) {
+        if (epoll_wait(epfd, events, 1, 0) > 0) {
             wl_display_dispatch(g_state->display);
+        }
+
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        long frame_ns = (now.tv_sec - frame_start.tv_sec) * 1000000000L + (now.tv_nsec - frame_start.tv_nsec);
+        if (frame_ns < TARGET_FRAME_NS) {
+            struct timespec rem = {0, TARGET_FRAME_NS - frame_ns};
+            clock_nanosleep(CLOCK_MONOTONIC, 0, &rem, NULL);
         }
     }
     close(epfd);

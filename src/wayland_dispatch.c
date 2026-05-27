@@ -113,11 +113,15 @@ void xdg_surface_configure(void *data, struct xdg_surface *xdg_surface,
         if (output->xdg_surface == xdg_surface) {
             xdg_surface_ack_configure(xdg_surface, serial);
             if (output->pending_width && output->pending_height) {
-                output->width = output->pending_width;
-                output->height = output->pending_height;
+                if (output->width != output->pending_width || output->height != output->pending_height) {
+                    output->width = output->pending_width;
+                    output->height = output->pending_height;
+                    output_resize(output);
+                } else {
+                    DEBUG("configure with same size, skip resize");
+                }
                 output->pending_width = 0;
                 output->pending_height = 0;
-                output_resize(output);
             }
             output->is_configured = 1;
             DEBUG("output %s is configured", output->name);
