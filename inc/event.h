@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define EVENT_QUEUE_SIZE 64
 
 typedef enum {
@@ -19,6 +23,10 @@ typedef struct {
         struct { int x; int y; } mouse_move;
     };
 } Event;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

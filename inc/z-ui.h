@@ -4,6 +4,10 @@
 
 #include "event.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct { int x, y; float z; } Point;
 typedef struct { float x, y, z; } vec3;
 
@@ -29,5 +33,9 @@ void z_ui_destory(Z_UI_Context *ctx);
 void z_ui_set_size(Z_UI_Context *ctx, int width, int height);
 void z_ui_exit(Z_UI_Context *ctx);
 void z_ui_push_event(Z_UI_Context *ctx, Event *event);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

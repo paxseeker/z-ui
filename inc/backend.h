@@ -3,6 +3,10 @@
 
 typedef struct Z_UI_Context Z_UI_Context;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct Backend {
     const char *name;
     int  (*init)(Z_UI_Context *ctx);
@@ -11,5 +15,9 @@ typedef struct Backend {
 } Backend;
 
 extern const Backend wayland_backend;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

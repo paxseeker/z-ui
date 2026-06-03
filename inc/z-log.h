@@ -8,6 +8,10 @@
 #define Z_LOG_H
 
 #include <pthread.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -265,5 +269,9 @@ void write_log(char *msg) {
         free(log);
     }
 }
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 #endif
