@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <wayland-client-protocol.h>
 
-typedef struct WaylandState WaylandState;
 typedef struct OutputInfo OutputInfo;
 
 typedef struct {
@@ -22,10 +21,9 @@ typedef struct ShmPool {
     int64_t ssize;
     int stride;
     int fd;
-    WaylandState *state;
 } ShmPool;
 
-int wl_shm_pool_init(WaylandState *state, OutputInfo *output_info,
+int wl_shm_pool_init(struct wl_shm *shm, OutputInfo *output_info,
                      int buffer_count);
 
 ShmBuffer *get_shm_buffer(ShmPool *pool);

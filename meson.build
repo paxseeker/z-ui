@@ -31,6 +31,7 @@ foreach xml : protocols
 endforeach
 
 sources = files([
+  'src/backend_wayland.c',
   'src/wayland_state.c',
   'src/wayland_dispatch.c',
   'src/wl_shm_pool.c',

@@ -2,9 +2,10 @@
 #define WAYLAND_STATE_H
 
 #include <stdint.h>
-#include <wayland-client-core.h>
+#include <wayland-client-protocol.h>
 #include <xdg-shell.h>
-#include <wl_shm_pool.h>
+#include "event.h"
+#include "wl_shm_pool.h"
 
 typedef struct OutputInfo {
     struct wl_output *output;
@@ -24,8 +25,10 @@ typedef struct OutputInfo {
     ShmPool *shm_pool;
 } OutputInfo;
 
+typedef void (*render_fn)(void *userdata, uint32_t *pixels, int width, int height);
+typedef void (*event_fn)(void *userdata, Event *ev);
+
 typedef struct WaylandState {
-    int running;
     struct wl_display *display;
     struct wl_compositor *compositor;
     struct xdg_wm_base *xdg_wm_base;
@@ -34,12 +37,16 @@ typedef struct WaylandState {
     struct wl_shm *shm;
     OutputInfo **output_infos;
     int output_count;
+    int *running;
+    void *render_data;
+    render_fn render;
+    void *event_data;
+    event_fn on_event;
 } WaylandState;
 
-extern WaylandState *g_state;
-
-int wayland_init(int width, int height);
-void loop_run(void);
-void output_resize(OutputInfo *output);
+WaylandState *wayland_state_new(int width, int height);
+void loop_run(WaylandState *ws);
+void wayland_state_free(WaylandState *ws);
+void output_resize(WaylandState *ws, OutputInfo *output);
 
 #endif

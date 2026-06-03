@@ -56,7 +56,7 @@ int create_shm_buffer(ShmPool *shm_pool) {
     return 0;
 }
 
-int wl_shm_pool_init(WaylandState *state,
+int wl_shm_pool_init(struct wl_shm *shm,
                      OutputInfo *output_info, int buffer_count) {
     INFO("begine shm pool init");
     ShmPool *shm_pool =
@@ -74,7 +74,6 @@ int wl_shm_pool_init(WaylandState *state,
         return 1;
     }
 
-    // Initialize shm_buffers to NULL
     for (int i = 0; i < buffer_count; i++) {
         shm_pool->shm_buffers[i] = NULL;
     }
@@ -86,7 +85,6 @@ int wl_shm_pool_init(WaylandState *state,
     INFO("buffer width %d, height %d, buffer count %d", shm_pool->buffer_width,
          shm_pool->buffer_height, shm_pool->buffer_count);
 
-    struct wl_shm *shm = state->shm;
     int stride = output_info->width * 4;
     int aligned_ssize = (stride * output_info->height + 4095) & ~4095;
     int64_t pool_size = (int64_t)aligned_ssize * buffer_count;
@@ -119,14 +117,12 @@ int wl_shm_pool_init(WaylandState *state,
         return 1;
     }
     shm_pool->fd = fd;
-    shm_pool->state = state;
 
     output_info->shm_pool = shm_pool;
 
     int ret = create_shm_buffer(shm_pool);
     if (ret) {
         ERROR("create shm buffer error");
-        // Cleanup partially created buffers
         if (shm_pool->shm_buffers) {
             for (int i = 0; i < buffer_count; i++) {
                 if (shm_pool->shm_buffers[i]) {
@@ -161,8 +157,7 @@ ShmBuffer *get_shm_buffer(ShmPool *pool) {
             return pool->shm_buffers[i];
         }
     }
-    pool->shm_buffers[0]->busy = 0;
-    return pool->shm_buffers[0];
+    return NULL;
 }
 
 int mark_busy(ShmPool *pool, struct wl_buffer *buffer) {
@@ -243,5 +238,4 @@ void shm_pool_destroy(ShmPool *pool) {
     }
 
     free(pool);
-    pool = NULL;
 }
