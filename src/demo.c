@@ -148,6 +148,7 @@ void z_ui_event(Z_UI_Context *ctx) {
 }
 
 void z_ui_update(Z_UI_Context *ctx, uint32_t *pixels, int width, int height) {
+    z_ui_event(ctx);
     memset(pixels, 0, width * height * 4);
 
     static float *zbuf = NULL;

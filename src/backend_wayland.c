@@ -10,7 +10,6 @@ static void render_cb(void *userdata, uint32_t *pixels, int width, int height) {
 static void event_cb(void *userdata, Event *ev) {
     Z_UI_Context *ctx = userdata;
     z_ui_push_event(ctx, ev);
-    z_ui_event(ctx);
 }
 
 static int init(Z_UI_Context *ctx) {
